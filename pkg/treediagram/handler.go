@@ -38,16 +38,20 @@ func (h Handler) CreateAnipoll(request contract.Request) (*contract.Response, er
 
 	createPollRequest := createAniPollRequest.CreatePollRequest
 
-	options, err := h.animeOptions(createAniPollRequest.Season, createAniPollRequest.Year)
+	animeOptions, err := h.animeOptions(createAniPollRequest.Season, createAniPollRequest.Year)
 	if err != nil {
-		return FormatClientError(err)
+		h.logger.Error().Err(err).Caller().Msg("received an error from anilist")
+
+		return contract.StringResponse("the AniList API is unavailable at the moment :anguished:"), nil
 	}
 
-	for _, option := range options {
+	for _, option := range animeOptions {
 		createPollRequest.Options = append(createPollRequest.Options, option)
 	}
 
-	createPollRequest.AllowedUniqueVotes = int32(len(createPollRequest.Options))
+	if createPollRequest.AllowedUniqueVotes == 0 {
+		createPollRequest.AllowedUniqueVotes = int32(len(createPollRequest.Options))
+	}
 
 	reply, err := h.votingClient.CreatePoll(context.Background(), createPollRequest)
 	if err != nil {
@@ -58,14 +62,12 @@ func (h Handler) CreateAnipoll(request contract.Request) (*contract.Response, er
 }
 
 func (h Handler) animeOptions(season string, year string) ([]*votingpb.Option, error) {
-	variables := map[string]string{}
-
-	variables["season"] = strings.ToUpper(season)
-	variables["seasonYear"] = year
-
 	request := anilist.Request{
-		Query:     anilist.DefaultAnimeForSeasonQuery,
-		Variables: variables,
+		Query: anilist.DefaultAnimeForSeasonQuery,
+		Variables: map[string]string{
+			"season":     strings.ToUpper(season),
+			"seasonYear": year,
+		},
 	}
 
 	options := []*votingpb.Option{}
