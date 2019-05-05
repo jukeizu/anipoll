@@ -47,6 +47,8 @@ func (h Handler) CreateAnipoll(request contract.Request) (*contract.Response, er
 		createPollRequest.Options = append(createPollRequest.Options, option)
 	}
 
+	createPollRequest.AllowedUniqueVotes = int32(len(options))
+
 	reply, err := h.votingClient.CreatePoll(context.Background(), createPollRequest)
 	if err != nil {
 		return FormatClientError(err)

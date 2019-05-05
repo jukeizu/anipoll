@@ -29,11 +29,13 @@ func ParseCreateAnipollRequest(request contract.Request) (AnipollRequest, error)
 	parser := flag.NewFlagSet("anipoll", flag.ContinueOnError)
 	parser.SetOutput(outputBuffer)
 
+	defaultSeason := defaultSeason()
 	defaultYear := fmt.Sprintf("%d", time.Now().Year())
+	defaultTitle := buildTitle("", defaultSeason, defaultYear)
 
-	title := parser.String("t", "", "The poll title")
-	allowedUniqueVotes := parser.Int("n", 0, "The number of unique votes a user can submit. Default is max.")
-	season := parser.String("s", "", "The anime season. (winter, spring, summer, fall)")
+	title := parser.String("t", defaultTitle, "The poll title")
+	allowedUniqueVotes := parser.Int("n", 0, "The number of unique votes a user can submit. (defaults to the number of anime + options)")
+	season := parser.String("s", defaultSeason, "The anime season. (winter, spring, summer, fall)")
 	year := parser.String("y", defaultYear, "The anime year.")
 
 	err = parser.Parse(args[1:])
@@ -86,4 +88,21 @@ func isValidSeason(season string) bool {
 	_, validSeason := seasons[season]
 
 	return validSeason
+}
+
+func defaultSeason() string {
+	month := time.Now().Month()
+
+	switch month {
+	case time.January, time.February, time.March:
+		return "winter"
+	case time.April, time.May, time.June:
+		return "spring"
+	case time.July, time.August, time.September:
+		return "summer"
+	case time.October, time.November, time.December:
+		return "fall"
+	}
+
+	return ""
 }
