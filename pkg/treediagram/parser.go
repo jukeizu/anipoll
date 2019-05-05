@@ -34,9 +34,15 @@ func ParseCreateAnipollRequest(request contract.Request) (AnipollRequest, error)
 	defaultTitle := buildTitle("", defaultSeason, defaultYear)
 
 	title := parser.String("t", defaultTitle, "The poll title")
-	allowedUniqueVotes := parser.Int("n", 0, "The number of unique votes a user can submit. (defaults to the number of anime + options)")
-	season := parser.String("s", defaultSeason, "The anime season. (winter, spring, summer, fall)")
-	year := parser.String("y", defaultYear, "The anime year.")
+	allowedUniqueVotes := parser.Int("n", 0, "The number of unique votes a user can submit. (defaults to the number of anime + additional options)")
+	season := parser.String("s", defaultSeason, "The anime season")
+	year := parser.String("y", defaultYear, "The anime year")
+
+	parser.Usage = func() {
+		fmt.Fprintf(parser.Output(), "Usage of %s:\n", parser.Name())
+		parser.PrintDefaults()
+		fmt.Fprintln(parser.Output(), "[options]... \n    \tAdditional poll options")
+	}
 
 	err = parser.Parse(args[1:])
 	if err != nil {
@@ -79,13 +85,13 @@ func buildTitle(title string, season string, year string) string {
 }
 
 func isValidSeason(season string) bool {
-	seasons := map[string]bool{}
-	seasons["spring"] = true
-	seasons["summer"] = true
-	seasons["winter"] = true
-	seasons["fall"] = true
-
-	_, validSeason := seasons[season]
+	seasons := map[string]bool{
+		"spring": true,
+		"summer": true,
+		"winter": true,
+		"fall":   true,
+	}
+	_, validSeason := seasons[strings.ToLower(season)]
 
 	return validSeason
 }
