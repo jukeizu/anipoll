@@ -18,7 +18,7 @@ func FormatNewPollReply(poll *votingpb.Poll) string {
 		buffer.WriteString(fmt.Sprintf("\n**%s**\n", poll.Title))
 	}
 
-	buffer.WriteString(fmt.Sprintf("\nType `!poll` to view the poll. A previous poll can be viewed via id. e.g. `!poll %s`", poll.ShortId))
+	buffer.WriteString(fmt.Sprintf("\nType `!poll` to view the poll. A previous poll can be viewed via id. e.g. `!poll -id %s`", poll.ShortId))
 
 	return buffer.String()
 }
