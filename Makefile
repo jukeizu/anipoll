@@ -2,7 +2,7 @@ TAG=$(shell git describe --tags --always)
 VERSION=$(TAG:v%=%)
 NAME=anipoll
 REPO=jukeizu/$(NAME)
-GO=GO111MODULE=on go
+GO=go
 BUILD=GOARCH=amd64 $(GO) build -ldflags="-s -w -X main.Version=$(VERSION)" 
 PROTOFILES=$(wildcard api/protobuf-spec/*/*.proto)
 PBFILES=$(patsubst %.proto,%.pb.go, $(PROTOFILES))
