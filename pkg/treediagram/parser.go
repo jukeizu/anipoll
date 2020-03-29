@@ -31,9 +31,8 @@ func ParseCreateAnipollRequest(request contract.Request) (AnipollRequest, error)
 
 	defaultSeason := defaultSeason()
 	defaultYear := fmt.Sprintf("%d", time.Now().Year())
-	defaultTitle := buildTitle("", defaultSeason, defaultYear)
 
-	title := parser.String("t", defaultTitle, "The poll title")
+	title := parser.String("t", "", "The poll title")
 	allowedUniqueVotes := parser.Int("n", 0, "The number of unique votes a user can submit. (defaults to the number of anime + additional options)")
 	season := parser.String("s", defaultSeason, "The anime season")
 	year := parser.String("y", defaultYear, "The anime year")
