@@ -38,7 +38,7 @@ func ParseCreateAnipollRequest(request contract.Request) (AnipollRequest, error)
 	allowedUniqueVotes := parser.Int("n", 0, "The number of unique votes a user can submit. (defaults to the number of anime + additional options)")
 	season := parser.String("s", defaultSeason, "The anime season")
 	year := parser.String("y", defaultYear, "The anime year")
-	ends := parser.String("ends", endTime, fmt.Sprintf("The UTC end time for the poll. (format M/d/yy H:mm)"))
+	ends := parser.String("ends", endTime, fmt.Sprintf("The UTC end time for the poll. (format \"M/d/yy H:mm\")"))
 
 	parser.Usage = func() {
 		fmt.Fprintf(parser.Output(), "Usage of %s:\n", parser.Name())
