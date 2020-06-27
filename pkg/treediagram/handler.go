@@ -55,6 +55,7 @@ func (h Handler) CreateAnipoll(request contract.Request) (*contract.Response, er
 
 	reply, err := h.votingClient.CreatePoll(context.Background(), createPollRequest)
 	if err != nil {
+		h.logger.Error().Err(err).Caller().Msg("failed to create poll")
 		return FormatClientError(err)
 	}
 
