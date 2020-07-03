@@ -59,7 +59,11 @@ func (h Handler) CreateAnipoll(request contract.Request) (*contract.Response, er
 		return FormatClientError(err)
 	}
 
-	return contract.StringResponse(FormatNewPollReply(reply.Poll)), nil
+	message := &contract.Message{
+		Embed: FormatNewPollReply(reply.Poll),
+	}
+
+	return &contract.Response{Messages: []*contract.Message{message}}, nil
 }
 
 func (h Handler) animeOptions(season string, year string) ([]*votingpb.Option, error) {

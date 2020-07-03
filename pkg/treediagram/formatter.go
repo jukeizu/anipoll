@@ -11,23 +11,34 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func FormatNewPollReply(poll *votingpb.Poll) string {
+var CountdownURL = "https://countdown.treediagram.xyz"
+var ThumbnailURL = "https://cdn.discordapp.com/attachments/320660733740449792/728375524090576996/ff85a1aae50ad48506e3275656768e89.png"
+
+func FormatNewPollReply(poll *votingpb.Poll) *contract.Embed {
+	embed := &contract.Embed{
+		Color:        0x5dadec,
+		Title:        fmt.Sprintf("**A new anime poll has started** `%s`\n", poll.ShortId),
+		ThumbnailUrl: ThumbnailURL,
+	}
+
 	buffer := bytes.Buffer{}
-	buffer.WriteString(fmt.Sprintf(":ballot_box: **A new anime poll has started** `%s`\n", poll.ShortId))
 
 	if poll.Title != "" {
 		buffer.WriteString(fmt.Sprintf("\n**%s**\n", poll.Title))
 	}
 
 	if poll.Expires > (time.Time{}).Unix() {
-		formatedTime := time.Unix(poll.Expires, 0).UTC().Format("Jan 2, 2006 15:04:05 MST")
+		t := time.Unix(poll.Expires, 0).UTC()
+		displayTime := t.Format("Jan 2, 2006 15:04 MST")
 
-		buffer.WriteString(fmt.Sprintf("\nPoll ends `%s`\n", formatedTime))
+		buffer.WriteString(fmt.Sprintf("\nPoll ends: [%s](%s?t=%d)\n", displayTime, CountdownURL, poll.Expires))
 	}
 
 	buffer.WriteString(fmt.Sprintf("\nView the poll with `!poll` or `!poll -id %s`", poll.ShortId))
 
-	return buffer.String()
+	embed.Description = buffer.String()
+
+	return embed
 }
 
 func FormatParseError(err error) (*contract.Response, error) {
