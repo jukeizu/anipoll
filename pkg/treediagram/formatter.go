@@ -1,7 +1,6 @@
 package treediagram
 
 import (
-	"bytes"
 	"fmt"
 	"time"
 
@@ -12,33 +11,55 @@ import (
 )
 
 var CountdownURL = "https://countdown.treediagram.xyz"
-var ThumbnailURL = "https://cdn.discordapp.com/attachments/320660733740449792/728375524090576996/ff85a1aae50ad48506e3275656768e89.png"
+var BallotBoxThumbnailURL = "https://cdn.discordapp.com/attachments/320660733740449792/728375524090576996/ff85a1aae50ad48506e3275656768e89.png"
 
-func FormatNewPollReply(poll *votingpb.Poll) *contract.Embed {
+func FormatNewPollReply(poll *votingpb.Poll) *contract.Message {
 	embed := &contract.Embed{
-		Color:        0x5dadec,
-		Title:        fmt.Sprintf("**A new anime poll has started** `%s`\n", poll.ShortId),
-		ThumbnailUrl: ThumbnailURL,
+		Color:        0x5865f2,
+		Title:        "**A new anime poll has started**",
+		ThumbnailUrl: BallotBoxThumbnailURL,
+		Footer: &contract.EmbedFooter{
+			Text: poll.ShortId,
+		},
 	}
-
-	buffer := bytes.Buffer{}
 
 	if poll.Title != "" {
-		buffer.WriteString(fmt.Sprintf("\n**%s**\n", poll.Title))
+		embed.Fields = append(embed.Fields, &contract.EmbedField{
+			Name:  "Title",
+			Value: poll.Title,
+		})
 	}
 
-	if poll.Expires > (time.Time{}).Unix() {
-		t := time.Unix(poll.Expires, 0).UTC()
-		displayTime := t.Format("Jan 2, 2006 15:04 MST")
-
-		buffer.WriteString(fmt.Sprintf("\nPoll ends: [%s](%s?t=%d)\n", displayTime, CountdownURL, poll.Expires))
+	if hasExpiration(poll) {
+		embed.Fields = append(embed.Fields, &contract.EmbedField{
+			Name:  "Open until",
+			Value: fmt.Sprintf("<t:%d>", poll.Expires),
+		})
 	}
 
-	buffer.WriteString(fmt.Sprintf("\nView the poll with `!poll` or `!poll -id %s`", poll.ShortId))
+	embed.Fields = append(embed.Fields, &contract.EmbedField{
+		Name:  "Started by",
+		Value: fmt.Sprintf("<@!%s>", poll.CreatorId),
+	})
 
-	embed.Description = buffer.String()
-
-	return embed
+	return &contract.Message{
+		Embed: embed,
+		Compontents: &contract.Components{
+			ActionsRows: []*contract.ActionsRow{
+				&contract.ActionsRow{
+					Buttons: []*contract.Button{
+						&contract.Button{
+							Label:    "Vote",
+							CustomId: fmt.Sprintf("poll.%s", poll.ShortId),
+							Emoji: contract.ComponentEmoji{
+								Name: "🗳️",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
 }
 
 func FormatParseError(err error) (*contract.Response, error) {
@@ -64,4 +85,8 @@ func FormatClientError(err error) (*contract.Response, error) {
 	}
 
 	return nil, err
+}
+
+func hasExpiration(poll *votingpb.Poll) bool {
+	return poll.Expires > (time.Time{}).Unix()
 }
