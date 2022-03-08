@@ -59,9 +59,7 @@ func (h Handler) CreateAnipoll(request contract.Request) (*contract.Response, er
 		return FormatClientError(err)
 	}
 
-	message := &contract.Message{
-		Embed: FormatNewPollReply(reply.Poll),
-	}
+	message := FormatNewPollReply(reply.Poll)
 
 	return &contract.Response{Messages: []*contract.Message{message}}, nil
 }

@@ -5,8 +5,8 @@ go 1.12
 require (
 	github.com/cheapRoc/grpc-zerolog v0.0.0-20180425150930-27ca9d023ead
 	github.com/jnewmano/grpc-json-proxy v0.0.0-20180914194908-38a7fdf2bd5c
-	github.com/jukeizu/contract v0.3.1
-	github.com/jukeizu/voting v0.3.0
+	github.com/jukeizu/contract v0.3.9
+	github.com/jukeizu/voting v0.5.0
 	github.com/mattn/go-shellwords v1.0.5
 	github.com/oklog/run v1.0.0
 	github.com/rs/xid v1.2.1
