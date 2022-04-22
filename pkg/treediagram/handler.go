@@ -38,7 +38,7 @@ func (h Handler) CreateAnipoll(request contract.Request) (*contract.Response, er
 
 	createPollRequest := createAniPollRequest.CreatePollRequest
 
-	animeOptions, err := h.animeOptions(createAniPollRequest.Season, createAniPollRequest.Year)
+	animeOptions, err := h.animeOptions(createAniPollRequest.Season, createAniPollRequest.Year, createAniPollRequest.Formats)
 	if err != nil {
 		h.logger.Error().Err(err).Caller().Msg("received an error from anilist")
 
@@ -64,19 +64,20 @@ func (h Handler) CreateAnipoll(request contract.Request) (*contract.Response, er
 	return &contract.Response{Messages: []*contract.Message{message}}, nil
 }
 
-func (h Handler) animeOptions(season string, year string) ([]*votingpb.Option, error) {
+func (h Handler) animeOptions(season string, year string, formats []string) ([]*votingpb.Option, error) {
 	request := anilist.Request{
 		Query: anilist.DefaultAnimeForSeasonQuery,
-		Variables: map[string]string{
+		Variables: map[string]interface{}{
 			"season":     strings.ToUpper(season),
 			"seasonYear": year,
+			"formats":    formats,
 		},
 	}
 
 	options := []*votingpb.Option{}
 
 	for {
-		response, err := h.anilistClient.Query(request)
+		response, err := h.anilistClient.Query(context.Background(), request)
 		if err != nil {
 			return options, err
 		}

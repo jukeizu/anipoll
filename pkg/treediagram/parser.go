@@ -16,6 +16,7 @@ type AnipollRequest struct {
 	CreatePollRequest *votingpb.CreatePollRequest
 	Season            string
 	Year              string
+	Formats           []string
 }
 
 func ParseCreateAnipollRequest(request contract.Request) (AnipollRequest, error) {
@@ -33,11 +34,13 @@ func ParseCreateAnipollRequest(request contract.Request) (AnipollRequest, error)
 
 	defaultSeason := defaultSeason()
 	defaultYear := fmt.Sprintf("%d", time.Now().Year())
+	defaultFormats := "TV,ONA"
 
 	title := parser.String("t", "", "The poll title")
 	allowedUniqueVotes := parser.Int("n", 0, "The number of unique votes a user can submit. (defaults to the number of anime + additional options)")
 	season := parser.String("s", defaultSeason, "The anime season")
 	year := parser.String("y", defaultYear, "The anime year")
+	parsedFormats := parser.String("f", defaultFormats, "comma delimited list of anime formats")
 	ends := parser.String("ends", endTime, fmt.Sprintf("The UTC end time for the poll. (format \"M/d/yy H:mm\")"))
 
 	parser.Usage = func() {
@@ -80,10 +83,16 @@ func ParseCreateAnipollRequest(request contract.Request) (AnipollRequest, error)
 		createPollRequest.Options = append(createPollRequest.Options, option)
 	}
 
+	formats := strings.Split(*parsedFormats, ",")
+	for i := range formats {
+		formats[i] = strings.TrimSpace(formats[i])
+	}
+
 	anipollRequest := AnipollRequest{
 		CreatePollRequest: createPollRequest,
 		Season:            *season,
 		Year:              *year,
+		Formats:           formats,
 	}
 
 	return anipollRequest, nil
