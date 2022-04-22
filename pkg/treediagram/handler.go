@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/jukeizu/contract"
@@ -68,7 +67,7 @@ func (h Handler) animeOptions(season string, year string, formats []string) ([]*
 	request := anilist.Request{
 		Query: anilist.DefaultAnimeForSeasonQuery,
 		Variables: map[string]interface{}{
-			"season":     strings.ToUpper(season),
+			"season":     season,
 			"seasonYear": year,
 			"formats":    formats,
 		},
@@ -87,6 +86,9 @@ func (h Handler) animeOptions(season string, year string, formats []string) ([]*
 		}
 
 		for _, anime := range response.Data.Page.Media {
+			if anime.Episodes != 0 && anime.Episodes < 5 {
+				continue
+			}
 			option := &votingpb.Option{
 				Content: anime.Title.Romaji,
 				Url:     anime.SiteUrl,

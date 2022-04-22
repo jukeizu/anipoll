@@ -12,6 +12,26 @@ import (
 	shellwords "github.com/mattn/go-shellwords"
 )
 
+var validSeasons = []string{
+	"SPRING",
+	"SUMMER",
+	"WINTER",
+	"FALL",
+}
+
+var validFormats = []string{
+	"TV",
+	"TV_SHORT",
+	"MOVIE",
+	"SPECIAL",
+	"OVA",
+	"ONA",
+	"MUSIC",
+	"MANGA",
+	"NOVEL",
+	"ONE_SHOT",
+}
+
 type AnipollRequest struct {
 	CreatePollRequest *votingpb.CreatePollRequest
 	Season            string
@@ -38,7 +58,7 @@ func ParseCreateAnipollRequest(request contract.Request) (AnipollRequest, error)
 
 	title := parser.String("t", "", "The poll title")
 	allowedUniqueVotes := parser.Int("n", 0, "The number of unique votes a user can submit. (defaults to the number of anime + additional options)")
-	season := parser.String("s", defaultSeason, "The anime season")
+	parsedSeason := parser.String("s", defaultSeason, "The anime season")
 	year := parser.String("y", defaultYear, "The anime year")
 	parsedFormats := parser.String("f", defaultFormats, "comma delimited list of anime formats")
 	ends := parser.String("ends", endTime, fmt.Sprintf("The UTC end time for the poll. (format \"M/d/yy H:mm\")"))
@@ -54,8 +74,9 @@ func ParseCreateAnipollRequest(request contract.Request) (AnipollRequest, error)
 		return AnipollRequest{}, ParseError{Message: outputBuffer.String()}
 	}
 
-	if len(*season) > 0 && !isValidSeason(*season) {
-		return AnipollRequest{}, ParseError{Message: "That season is not valid."}
+	season := strings.ToUpper(*parsedSeason)
+	if len(season) > 0 && !isValid(season, validSeasons) {
+		return AnipollRequest{}, ParseError{Message: "Invalid season provided. Must be one of: `" + strings.Join(validSeasons, ", ") + "`"}
 	}
 
 	t, err := parseEndTime("1/2/06 15:04", *ends)
@@ -67,8 +88,17 @@ func ParseCreateAnipollRequest(request contract.Request) (AnipollRequest, error)
 		return AnipollRequest{}, ParseError{Message: "Poll end time must be in the future."}
 	}
 
+	formats := strings.Split(*parsedFormats, ",")
+	for i := range formats {
+		format := strings.ToUpper(strings.TrimSpace(formats[i]))
+		if !isValid(format, validFormats) {
+			return AnipollRequest{}, ParseError{Message: "Invalid format provided. Must be one of: `" + strings.Join(validFormats, ", ") + "`"}
+		}
+		formats[i] = format
+	}
+
 	createPollRequest := &votingpb.CreatePollRequest{
-		Title:              buildTitle(*title, *season, *year),
+		Title:              buildTitle(*title, season, *year),
 		AllowedUniqueVotes: int32(*allowedUniqueVotes),
 		ServerId:           request.ServerId,
 		CreatorId:          request.Author.Id,
@@ -83,14 +113,9 @@ func ParseCreateAnipollRequest(request contract.Request) (AnipollRequest, error)
 		createPollRequest.Options = append(createPollRequest.Options, option)
 	}
 
-	formats := strings.Split(*parsedFormats, ",")
-	for i := range formats {
-		formats[i] = strings.TrimSpace(formats[i])
-	}
-
 	anipollRequest := AnipollRequest{
 		CreatePollRequest: createPollRequest,
-		Season:            *season,
+		Season:            season,
 		Year:              *year,
 		Formats:           formats,
 	}
@@ -102,19 +127,17 @@ func buildTitle(title string, season string, year string) string {
 	if title != "" {
 		return title
 	}
-	return fmt.Sprintf("%s %s", strings.Title(season), year)
+	return fmt.Sprintf("%s %s", strings.Title(strings.ToLower(season)), year)
 }
 
-func isValidSeason(season string) bool {
-	seasons := map[string]bool{
-		"spring": true,
-		"summer": true,
-		"winter": true,
-		"fall":   true,
+func isValid(intput string, valid []string) bool {
+	for _, item := range valid {
+		if intput == item {
+			return true
+		}
 	}
-	_, validSeason := seasons[strings.ToLower(season)]
 
-	return validSeason
+	return false
 }
 
 func defaultSeason() string {
