@@ -11,6 +11,6 @@ require (
 	github.com/oklog/run v1.0.0
 	github.com/rs/xid v1.2.1
 	github.com/rs/zerolog v1.14.3
-	github.com/shawntoffel/anilist v0.2.0
+	github.com/shawntoffel/anilist v0.3.0
 	google.golang.org/grpc v1.29.1
 )
